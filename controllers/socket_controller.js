@@ -26,6 +26,9 @@ module.exports = function(socket) {
 		console.log(`Current number of players:`, Object.keys(players).length);
 
 		console.log(`Players object:` , players);
+		/**
+		 * @todo Broadcast players to all other players (io.emit) whenever someone connects/disconnects
+		 */
 	})
 
 	// handle user disconnect
