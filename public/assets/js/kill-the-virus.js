@@ -3,49 +3,17 @@ const socket = io();
 const startEl = document.querySelector('#start');
 const gameWrapperEl = document.querySelector('#game-wrapper');
 const usernameForm = document.querySelector('#username-form');
-const messagesEl = document.querySelector('#messages'); // ul element containing all messages
-const messageForm = document.querySelector('#message-form');
-const messageEl = document.querySelector('#message');
+const opponentUsernameEl = document.querySelector('#opponent-username')
 
 let username = null;
 
-const addMessageToChat = (message, ownMsg = false) => {
-	// create new `li` element
-	const liEl = document.createElement('li');
-	// set class of `li` to `message`
-	liEl.classList.add('message');
-	// set content of `li` element
-	liEl.innerText = message;
-	if (ownMsg) {
-		liEl.classList.add('you');
-	}
-	// append `li` element to `#messages`
-	messagesEl.appendChild(liEl);
-	// scroll `li` element into view
-	liEl.scrollIntoView();
-}
-const addNoticeToChat = notice => {
-	const liEl = document.createElement('li');
-	liEl.classList.add('notice');
-	liEl.innerText = notice;
-	messagesEl.appendChild(liEl);
-	liEl.scrollIntoView();
-}
-// listen for when a new user connects
-socket.on('user:connected', () => {
-	addNoticeToChat("Someone connected");
-});
-// listen for when a user disconnects
-socket.on('user:disconnected', () => {
-	addNoticeToChat("Someone disconnected");
-});
-// listen for incoming messages
-socket.on('chat:message', message => {
-	console.log("Someone said something:", message);
-	addMessageToChat(message);
-});
+// socket.on('serverToClient', data => {
+// 	alert(data);
+// })
 
-// get username from form and show chat
+// socket.emit('clientToServer', "Hello server");
+
+// get username from form and show game
 usernameForm.addEventListener('submit', e => {
 	e.preventDefault();
 
@@ -57,23 +25,7 @@ usernameForm.addEventListener('submit', e => {
 	// show chat view
 	gameWrapperEl.classList.remove('hide');
 
-	// focus on inputMessage
-	messageEl.focus();
-});
+	socket.emit('player:joined', username);
 
-// send message to server
-messageForm.addEventListener('submit', e => {
-	e.preventDefault();
-
-	console.log("Someone submitted something:", messageEl.value);
-	if (!messageEl.value) {
-		return;
-	}
-	// send message to server
-	socket.emit('chat:message', messageEl.value);
-	// add message to chat
-	addMessageToChat(messageEl.value, true);
-	// clear message input element and focus
-	messageEl.value = '';
-	messageEl.focus();
+	// socket.emit('clientToClient', "Hello fellow clients");
 });

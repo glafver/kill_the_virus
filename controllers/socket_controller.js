@@ -5,37 +5,35 @@
 const debug = require('debug')('kill-the-virus:socket_controller');
 
 // list of socket-ids and their username
-const users = {};
+const players = {};
 
 module.exports = function(socket) {
 	debug('a new client has connected', socket.id);
 
-	// handle user disconnect
-	socket.on('disconnect', function() {
-		debug(`Client ${socket.id} disconnected :(`);
+	// socket.emit('serverToClient', "Hello Client");
+	// socket.on('clientToServer', data => {
+	// 	console.log(data);
+	// })
+	// socket.on('clientToClient', data => {
+	// 	socket.broadcast.emit('serverToClient', data);
+	// })
 
-		// let everyone connected know that user has disconnected
-		this.broadcast.emit('user:disconnected', users[socket.id]);
-
-		// remove user from list of connected users
-		delete users[socket.id];
-	});
-
-	// handle user joined
-	socket.on('user:joined', function(username, callback) {
-		// associate socket id with username
-		users[socket.id] = username;
+	socket.on('player:joined', username => {
+		players[socket.id] = username;
 
 		debug(`User ${username} with socket id ${socket.id} joined`);
 
-		// let everyone know that someone has connected to the chat
-		socket.broadcast.emit('user:connected', username);
+		console.log(`Current number of players:`, Object.keys(players).length);
 
-		// confirm join
-		callback({
-			success: true,
-		});
+		console.log(`Players object:` , players);
+	})
+
+	// handle user disconnect
+	socket.on('disconnect', function() {
+		debug(`Client ${socket.id} disconnected`);
+
+		// remove user from list of connected users
+		delete players[socket.id];
 	});
-
 
 }
