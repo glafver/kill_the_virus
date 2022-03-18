@@ -81,8 +81,10 @@ const handleReactionTime = function(data) {
             console.log('room, player 2 wins', room); // it works yuupppi!!!
         }
     }
-}
 
+    console.log(room);
+    this.broadcast.emit('game:results', room)
+}
 
 module.exports = function(socket, _io) {
     io = _io; // it must be to be possible to emit
@@ -154,7 +156,7 @@ module.exports = function(socket, _io) {
 
         // if we don't need to wait an opponent anymore:
         if (!waiting_opponent) {
-            console.log(room);
+            // console.log(room);
             // emit that a second user is ready to the first user
             this.broadcast.to(room.id).emit('user:ready');
             // discard the temporary variables
@@ -168,6 +170,8 @@ module.exports = function(socket, _io) {
     socket.on('players:ready', function() {
         // Find room
         const room = rooms.find(id => id.users[this.id]);
+
+        this.broadcast.emit('game:room', rooms)
 
         // Emit to specific room
         io.to(room.id).emit('game:start', getRandomDelay(), getRandomGridPosition(), getRandomGridPosition());

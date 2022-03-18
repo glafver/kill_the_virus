@@ -6,6 +6,7 @@ const usernameForm = document.querySelector('#username-form');
 const start_button = document.querySelector('.btn-primary');
 const waiting_label = document.querySelector('#waiting');
 const opponent_disconnected_label = document.querySelector('#opponent_disconnected');
+const games_now = document.querySelector('#games_now');
 
 const virusImageEl = document.querySelector('#virus-image');
 
@@ -107,7 +108,6 @@ socket.on('users:names', (users) => {
     }
 });
 
-
 // listen for users score and show them in game
 socket.on('users:score', (players) => {
     if (players[0].username === username) {
@@ -117,12 +117,12 @@ socket.on('users:score', (players) => {
         opponent_score.innerHTML = players[0].points;
         your_score.innerHTML = players[1].points;
     }
-    console.log(players);
+    console.log('test log 2', players);
 });
 
 // the first user listening when the opponent will be found
 socket.on('user:ready', () => {
-    console.log('user ready!!!');
+    // console.log('user ready!!!');
     startEl.classList.add('hide');
     gameWrapperEl.classList.remove('hide');
     start_button.classList.remove('hide');
@@ -137,6 +137,7 @@ socket.on('user:disconnected', () => {
     start_button.classList.remove('hide');
     waiting_label.classList.add('hide')
     opponent_disconnected_label.classList.remove('hide');
+
 });
 
 // listen for when we're disconnected
@@ -159,17 +160,45 @@ socket.on('game:start', (randomDelay, randomPositionX, randomPositionY) => {
         virusImageEl.classList.remove('hide');
     }, randomDelay)
     startTimer(you_minutes, you_seconds, you_milliseconds);
-    startTimer_opponent(opponent_minutes, opponent_seconds, opponent_milliseconds)
+    startTimer_opponent(opponent_minutes, opponent_seconds, opponent_milliseconds);
 });
+
+socket.on('game:room', (rooms) => {
+    rooms.forEach(room => {
+        let player_1_username = Object.values(room.users)[0];
+        let player_2_username = Object.values(room.users)[1];
+        let player_1_points = '0';
+        let player_2_points = '0';
+
+        socket.on('game:results', (room_with_result) => {
+            if (room_with_result.id === room.id) {
+                console.log('test log', room_with_result)
+                if (!room_with_result.player_2 || !room_with_result.player_1) {
+                    player_1_points = room_with_result.player_1.points;
+                } else if (!room_with_result.player_1) {
+                    player_2_points = room_with_result.player_2.points;
+                } else {
+                    player_1_points = room_with_result.player_1.points;
+                    player_2_points = room_with_result.player_2.points;
+                }
+                // roomEl.innerHTML = `${player_1_username} ${player_1_points} : ${player_2_username} ${player_2_points}`
+            }
+        });
+
+        const roomEl = document.createElement('p');
+        roomEl.innerHTML = `${player_1_username} ${player_1_points} : ${player_2_username} ${player_2_points}`
+        games_now.appendChild(roomEl);
+    });
+})
 
 // listen when our opponent will send us his time amd then update his time on our side
 socket.on('user:opponent_time', (paused_time_opponent) => {
     clearInterval(timerInterval_opponent);
-    console.log('opponent paused at ', paused_time_opponent);
+    // console.log('opponent paused at ', paused_time_opponent);
     opponent_minutes.innerHTML = paused_time_opponent.split(':')[0];
     opponent_seconds.innerHTML = paused_time_opponent.split(':')[1];
     opponent_milliseconds.innerHTML = paused_time_opponent.split(':')[2];
-})
+});
 
 // send reaction time to server
 virusImage.addEventListener('click', e => {
