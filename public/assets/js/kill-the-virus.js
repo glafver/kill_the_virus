@@ -3,7 +3,9 @@ const socket = io();
 const startEl = document.querySelector('#start');
 const gameWrapperEl = document.querySelector('#game-wrapper');
 const usernameForm = document.querySelector('#username-form');
-const start_button = document.querySelector('.btn-primary');
+const start_button = document.querySelector('#start-button');
+const go_to_lobby_button = document.querySelector('#lobby-button');
+const lobbyEl = document.querySelector('#lobby-wrapper');
 const waiting_label = document.querySelector('#waiting');
 const opponent_disconnected_label = document.querySelector('#opponent_disconnected');
 const games_now = document.querySelector('#games_now');
@@ -99,8 +101,20 @@ function countTime(time, user_min, user_sec, user_ms) {
     user_ms.innerHTML = formattedMS;
 
 }
+
+function createTableRow(player_1_username, player_2_username, player_1_points, player_2_points) {
+    return `<th scope="row">1</th>
+        <td>
+            <span>${player_1_username}</span> vs. <span>${player_2_username}</span>
+        </td>
+        <td>
+            <span>${player_1_points}</span> - <span>${player_2_points}</span>
+        </td>`;
+}
+
 // listen for users names to add opponent name to game
 socket.on('users:names', (users) => {
+    console.log(users)
     for (const key in users) {
         if (users[key] !== username) {
             opponent_badge.innerHTML = users[key];
@@ -163,17 +177,21 @@ socket.on('game:start', (randomDelay, randomPositionX, randomPositionY) => {
     startTimer_opponent(opponent_minutes, opponent_seconds, opponent_milliseconds);
 });
 
-socket.on('game:room', (rooms) => {
-    rooms.forEach(room => {
-        let player_1_username = Object.values(room.users)[0];
-        let player_2_username = Object.values(room.users)[1];
-        let player_1_points = '0';
-        let player_2_points = '0';
 
+socket.on('game:create_room_in_lobby', (room_in_game, rooms) => {
+    let player_1_username = Object.values(room_in_game.users)[0];
+    let player_2_username = Object.values(room_in_game.users)[1];
+    let player_1_points = '0sdf';
+    let player_2_points = '0sff';
+
+    const roomEl = document.createElement('tr');
+    roomEl.innerHTML = createTableRow(player_1_username, player_2_username, player_1_points, player_2_points)
+    games_now.appendChild(roomEl);
+
+    rooms.forEach(room => {
         socket.on('game:results', (room_with_result) => {
             if (room_with_result.id === room.id) {
-                console.log('test log', room_with_result)
-                if (!room_with_result.player_2 || !room_with_result.player_1) {
+                if (!room_with_result.player_2) {
                     player_1_points = room_with_result.player_1.points;
                 } else if (!room_with_result.player_1) {
                     player_2_points = room_with_result.player_2.points;
@@ -181,15 +199,12 @@ socket.on('game:room', (rooms) => {
                     player_1_points = room_with_result.player_1.points;
                     player_2_points = room_with_result.player_2.points;
                 }
-                // roomEl.innerHTML = `${player_1_username} ${player_1_points} : ${player_2_username} ${player_2_points}`
+                roomEl.innerHTML = createTableRow(player_1_username, player_2_username, player_1_points, player_2_points)
             }
         });
-
-        const roomEl = document.createElement('p');
-        roomEl.innerHTML = `${player_1_username} ${player_1_points} : ${player_2_username} ${player_2_points}`
-        games_now.appendChild(roomEl);
     });
 })
+
 
 // listen when our opponent will send us his time amd then update his time on our side
 socket.on('user:opponent_time', (paused_time_opponent) => {
@@ -249,3 +264,8 @@ usernameForm.addEventListener('submit', e => {
         usernameForm.username.value = '';
     });
 });
+
+go_to_lobby_button.addEventListener('click', e => {
+    // e.preventDefault();
+    lobbyEl.classList.remove('hide');
+})

@@ -30,10 +30,16 @@ let waiting_opponent = true;
 const handleReactionTime = function(data) {
 
     // find the room that this socket is part of
-    const room = rooms.find(chatroom => chatroom.users.hasOwnProperty(this.id));
+    const room = rooms.find(room => room.users_2.id = this.id);
 
     // sending the time when a user clicked on virus to his opponent
     this.broadcast.to(room.id).emit('user:opponent_time', data.paused_time);
+
+    room.users_2.reacion_time = data.totalmilliseconds;
+
+    if (room.users_2[0].reacion_time && room.users_2[0].reacion_time) {
+
+    }
 
     if (room.player_1 === undefined) {
         data.points = 0;
@@ -81,7 +87,6 @@ const handleReactionTime = function(data) {
             console.log('room, player 2 wins', room); // it works yuupppi!!!
         }
     }
-
     console.log(room);
     this.broadcast.emit('game:results', room)
 }
@@ -123,7 +128,8 @@ module.exports = function(socket, _io) {
             roomName = 'room_' + this.id;
             let room = {
                 id: roomName,
-                users: {}
+                users: {},
+                users_2: []
             };
             // push a new room to all rooms array
             rooms.push(room);
@@ -144,6 +150,14 @@ module.exports = function(socket, _io) {
 
         // associate socket id with username and store it in a room oject in the rooms array
         room.users[this.id] = username;
+
+        let user = {
+            id: this.id,
+            username,
+            points: 0
+        }
+
+        users_2.push(user)
 
         debug(`User ${username} with socket id ${socket.id} joined`);
 
@@ -171,7 +185,7 @@ module.exports = function(socket, _io) {
         // Find room
         const room = rooms.find(id => id.users[this.id]);
 
-        this.broadcast.emit('game:room', rooms)
+        this.broadcast.emit('game:create_room_in_lobby', room, rooms)
 
         // Emit to specific room
         io.to(room.id).emit('game:start', getRandomDelay(), getRandomGridPosition(), getRandomGridPosition());
