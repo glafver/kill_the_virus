@@ -39,24 +39,25 @@ const handleReactionTime = function(data) {
     const user = room.users.find(user => user.id === this.id);
     user.totalmilliseconds.push(data.totalmilliseconds);
     user.totalmillisecondsNow = data.totalmilliseconds;
- 
+
     // compare users time and send result
     if (room.users[0].totalmillisecondsNow !== 0 && room.users[1].totalmillisecondsNow !== 0) {
         if (room.users[0].totalmillisecondsNow < room.users[1].totalmillisecondsNow) {
             room.users[0].pointsNow++;
-            players = [{username: room.users[0].username, points:room.users[0].pointsNow},{username: room.users[1].username, points:room.users[1].pointsNow} ];
+            players = [{ username: room.users[0].username, points: room.users[0].pointsNow }, { username: room.users[1].username, points: room.users[1].pointsNow }];
             io.in(room.id).emit('users:score', players);
             room.users[0].totalmillisecondsNow = 0;
             room.users[1].totalmillisecondsNow = 0;
-  
+
         } else if (room.users[0].totalmillisecondsNow > room.users[1].totalmillisecondsNow) {
             room.users[1].pointsNow++;
-            players = [{username: room.users[0].username, points:room.users[0].pointsNow},{username: room.users[1].username, points:room.users[1].pointsNow} ];
+            players = [{ username: room.users[0].username, points: room.users[0].pointsNow }, { username: room.users[1].username, points: room.users[1].pointsNow }];
             io.in(room.id).emit('users:score', players);
             room.users[0].totalmillisecondsNow = 0;
             room.users[1].totalmillisecondsNow = 0;
         }
     }
+    this.broadcast.emit('game:results', room)
 }
 
 
@@ -120,13 +121,13 @@ module.exports = function(socket, _io) {
 
         // associate socket id with username and store it in a room oject in the rooms array
         let user = {
-            id: this.id,
-            username: username,
-            totalmillisecondsNow: 0,
-            totalmilliseconds: [],
-            pointsNow : 0,
-        }
-        // room.users[this.id] = username;
+                id: this.id,
+                username: username,
+                totalmillisecondsNow: 0,
+                totalmilliseconds: [],
+                pointsNow: 0,
+            }
+            // room.users[this.id] = username;
 
         room.users.push(user);
 
@@ -154,7 +155,9 @@ module.exports = function(socket, _io) {
     socket.on('players:ready', function() {
         // Find room
         const room = rooms.find(room => room.users.find(user => user.id === this.id));
-        // Emit to specific room
+
+        this.broadcast.emit('game:create_room_in_lobby', rooms)
+            // Emit to specific room
         io.to(room.id).emit('game:start', getRandomDelay(), getRandomGridPosition(), getRandomGridPosition());
     });
 

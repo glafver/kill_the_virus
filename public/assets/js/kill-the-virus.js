@@ -10,6 +10,7 @@ const backBtn = document.querySelector('#back-button')
 const waiting_label = document.querySelector('#waiting');
 const opponent_disconnected_label = document.querySelector('#opponent_disconnected');
 
+
 const virusImageEl = document.querySelector('#virus-image');
 
 let username = null;
@@ -26,6 +27,8 @@ let opponent_minutes = document.querySelector('#opponent-minutes');
 let opponent_seconds = document.querySelector('#opponent-seconds');
 let opponent_milliseconds = document.querySelector('#opponent-milliseconds');
 let virusImage = document.querySelector('#virus-image');
+
+const roomEl = document.createElement('tr');
 
 let startTime;
 let elapsedTime = 0;
@@ -101,15 +104,25 @@ function countTime(time, user_min, user_sec, user_ms) {
     user_ms.innerHTML = formattedMS;
 
 }
+
+function createTableRow(room) {
+    return `<th scope="row">1</th>
+        <td>
+            <span>${room.users[0].username}</span> vs. <span>${room.users[1].username}</span>
+        </td>
+        <td>
+            <span>${room.users[0].pointsNow}</span> - <span>${room.users[1].pointsNow}</span>
+        </td>`;
+}
+
 // listen for users names to add opponent name to game
 socket.on('users:names', (user1, user2) => {
-    if(user1 === username) {
+    if (user1 === username) {
         opponent_badge.innerHTML = user2;
+    } else {
+        opponent_badge.innerHTML = user1;
     }
-    else {
-     opponent_badge.innerHTML = user1;
-    }
- });
+});
 
 
 // listen for users score and show them in game
@@ -165,6 +178,19 @@ socket.on('game:start', (randomDelay, randomPositionX, randomPositionY) => {
     startTimer(you_minutes, you_seconds, you_milliseconds);
     startTimer_opponent(opponent_minutes, opponent_seconds, opponent_milliseconds)
 });
+
+socket.on('game:create_room_in_lobby', (rooms) => {
+    rooms.forEach(room => {
+        const games_now = document.querySelector('#games_now');
+        roomEl.innerHTML = createTableRow(room)
+        games_now.appendChild(roomEl);
+
+        socket.on('game:results', (room) => {
+            roomEl.innerHTML = createTableRow(room)
+        });
+    });
+})
+
 
 // listen when our opponent will send us his time amd then update his time on our side
 socket.on('user:opponent_time', (paused_time_opponent) => {
