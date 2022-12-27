@@ -236,7 +236,7 @@ const handleReactionTime = async function(data) {
             .sort({ totalmilliseconds: 'asc' })
             .limit(10);
 
-        console.log("highscores", highscores)
+        // console.log("highscores", highscores)
 
         io.emit('lobby:show_highscore', highscores);
 
