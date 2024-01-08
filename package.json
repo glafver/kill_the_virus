@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "start": "node ./bin/server.js",
+        "dev1": "cross-env DEBUG=kill-the-virus:* node ./bin/server.js",
         "dev": "cross-env DEBUG=kill-the-virus:* nodemon ./bin/server.js",
         "debug": "cross-env DEBUG=kill-the-virus:*,socket.io:client,socket.io:server nodemon --inspect ./bin/server.js"
     },
